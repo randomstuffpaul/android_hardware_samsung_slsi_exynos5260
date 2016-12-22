@@ -34,10 +34,8 @@
 
 #include "ExynosJpegApi.h"
 
-#define JPEG_DEC_NODE        "/dev/video11"
-#define JPEG_ENC_NODE        "/dev/video12"
-#define JPEG2_DEC_NODE       "/dev/video13"
-#define JPEG2_ENC_NODE       "/dev/video14"
+#define JPEG_DEC_NODE       "/dev/video13"
+#define JPEG_ENC_NODE       "/dev/video14"
 
 #define JPEG_ERROR_LOG(fmt,...) ALOGE(fmt,##__VA_ARGS__)
 
@@ -86,8 +84,6 @@ int ExynosJpegBase::ckeckJpegSelct(enum MODE eMode)
 
 int ExynosJpegBase::selectJpegHW(int iSel)
 {
-    t_iSelectNode = iSel;
-
     int iRet = ckeckJpegSelct((enum MODE)t_stJpegConfig.mode);
     t_bFlagSelect = true;
 
@@ -96,31 +92,12 @@ int ExynosJpegBase::selectJpegHW(int iSel)
 
 int ExynosJpegBase::openNode(enum MODE eMode)
 {
-    switch (t_iSelectNode) {
-    case 0:
-    case 1:
-        switch (eMode) {
-        case MODE_ENCODE:
-            t_iJpegFd = open(JPEG_ENC_NODE, O_RDWR, 0);
-            break;
-        case MODE_DECODE:
-            t_iJpegFd = open(JPEG_DEC_NODE, O_RDWR, 0);
-            break;
-        default:
-            break;
-        }
+    switch (eMode) {
+    case MODE_ENCODE:
+        t_iJpegFd = open(JPEG_ENC_NODE, O_RDWR, 0);
         break;
-    case 2:
-        switch (eMode) {
-        case MODE_ENCODE:
-            t_iJpegFd = open(JPEG2_ENC_NODE, O_RDWR, 0);
-            break;
-        case MODE_DECODE:
-            t_iJpegFd = open(JPEG2_DEC_NODE, O_RDWR, 0);
-            break;
-        default:
-            break;
-        }
+    case MODE_DECODE:
+        t_iJpegFd = open(JPEG_DEC_NODE, O_RDWR, 0);
         break;
     default:
         break;
@@ -200,7 +177,7 @@ int ExynosJpegBase::checkBufType(struct BUFFER *pstBuf)
     if ((int)pstBuf->c_addr[0] != 0 && (int)pstBuf->c_addr[0] != -1)
         ret = ret|JPEG_BUF_TYPE_USER_PTR;
 
-    if (pstBuf->i_addr[0] > 0)
+    if ((int)pstBuf->i_addr[0] > 0)
         ret = ret|JPEG_BUF_TYPE_DMA_BUF;
 
     return ret;

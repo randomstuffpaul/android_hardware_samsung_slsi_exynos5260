@@ -140,7 +140,6 @@ static int gralloc_alloc_rgb(int ionfd, int w, int h, int format, int usage,
     unsigned int heap_mask = _select_heap(usage);
 
     switch (format) {
-        case HAL_PIXEL_FORMAT_EXYNOS_ARGB_8888:
         case HAL_PIXEL_FORMAT_RGBA_8888:
         case HAL_PIXEL_FORMAT_RGBX_8888:
         case HAL_PIXEL_FORMAT_BGRA_8888:

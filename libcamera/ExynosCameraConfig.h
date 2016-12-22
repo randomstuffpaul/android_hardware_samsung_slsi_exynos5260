@@ -69,6 +69,7 @@
 #define GSCALER_IMG_ALIGN               (16)
 
 #define INITIAL_SKIP_FRAME              (8)
+#define VISION_SKIP_FRAME               (4)
 #define EFFECT_SKIP_FRAME               (1)
 #define SMART_STAY_SKIP_COMPENSATION    (1)
 
@@ -78,7 +79,7 @@
 
 #define SET_SETFILE_BY_SET_CTRL
 #ifdef SET_SETFILE_BY_SET_CTRL
-#define SET_SETFILE_BY_SET_CTRL_3AA_ISP (true)
+#define SET_SETFILE_BY_SET_CTRL_3AA_ISP (false)
 #define SET_SETFILE_BY_SET_CTRL_ISP     (true)
 #define SET_SETFILE_BY_SET_CTRL_SCP     (true)
 #endif
@@ -86,52 +87,46 @@
 /* #define USE_DVFS_LOCK */
 /* #define SENSOR_NAME_GET_FROM_FILE */
 /* #define RESERVED_MEMORY_ENABLE */
-#define RESERVED_BUFFER_COUNT_MAX       (5)
-/* #define USE_BNS_RECORDING */
+#define RESERVED_BUFFER_COUNT_MAX       (6)
 /* #define FPS_CHECK */
+/* #define EXYNOS_CAMERA_NODE_TRACE */
+/* #define FIXED_SENSOR_SIZE */
 #define USE_FD_AE
 #define FD_ROTATION                     (true)
 
-#define SHOT_RECOVERY                   (true)
-#ifdef SHOT_RECOVERY
-#define SHOT_RECOVERY_COUNT             (0)
-#else
-#define SHOT_RECOVERY_COUNT             (0)
+#define BURST_CAPTURE                   (true)
+#ifdef BURST_CAPTURE
+#define BURST_SHOT_COUNT                (20)
+enum {
+    BURST_SAVE_PHONE = 0,
+    BURST_SAVE_SDCARD,
+    BURST_SAVE_CALLBACK,
+};
+#define DEFAULT_BURST_SAVE              (BURST_SAVE_CALLBACK)
 #endif
 
-#define USE_ADAPTIVE_CSC_RECORDING      (false)
-#define USE_HIGHSPEED_RECORDING         (false)
+
+
 
 #define USE_FASTEN_AE_STABLE            (false)
-#define FASTEN_AE_WIDTH                 (1312)
-#define FASTEN_AE_HEIGHT                (738)
+#define FASTEN_AE_WIDTH                 (800)
+#define FASTEN_AE_HEIGHT                (450)
 #define FASTEN_AE_FPS                   (120)
-#define DEFAULT_BNS_RATIO               (2)
+
+#define DEFAULT_BNS_RATIO               (1)
 #define USE_CAMERA_SIZE_TABLE           (true)
 
-#define USE_PURE_BAYER_REPROCESSING     (true)
-
-/* This USE_DYNAMIC_BAYER define is for default scenario.
- * See <ExynosCameraParameter.cpp> for details of dynamic bayer setting
- */
+#define USE_PURE_BAYER_REPROCESSING     (false)
 #define USE_DYNAMIC_BAYER               (false)
-
-enum REPROCESSING_BAYER_MODE {
-    REPROCESSING_BAYER_MODE_NONE            = 0, /* This means capture do not use reprocessing */
-    REPROCESSING_BAYER_MODE_PURE_ALWAYS_ON,
-    REPROCESSING_BAYER_MODE_DIRTY_ALWAYS_ON,
-    REPROCESSING_BAYER_MODE_PURE_DYNAMIC,
-    REPROCESSING_BAYER_MODE_DIRTY_DYNAMIC,
-    REPROCESSING_BAYER_MODE_MAX,
-};
-
-#define USE_DYNAMIC_SCC_REAR            (false)
+#define USE_DYNAMIC_SCC_REAR            (true)
 #define USE_DYNAMIC_SCC_FRONT           (false)
 
-#define USE_GSC_FOR_CAPTURE_BACK        (false)
+#define DYNAMIC_SCC_INIT_COUNT          (4)
+#define USE_BOOST_DYNAMIC_SCC           (true)
+#define USE_GSC_FOR_CAPTURE_BACK        (true)
 #define USE_GSC_FOR_CAPTURE_FRONT       (true)
 
-#define MAX_SERIES_SHOT_COUNT           (21)
+#define MAX_SERIES_SHOT_COUNT           (20)
 
 #ifdef SENSOR_NAME_GET_FROM_FILE
 #define SENSOR_NAME_PATH_BACK "vendor specifics"
@@ -146,9 +141,9 @@ enum REPROCESSING_BAYER_MODE {
 #define MAIN_CAMERA_3AA_NUM         FIMC_IS_VIDEO_3A0_NUM
 #define MAIN_CAMERA_3AP_NUM         FIMC_IS_VIDEO_3A0P_NUM
 #define MAIN_CAMERA_3AC_NUM         FIMC_IS_VIDEO_3A0C_NUM
-#define MAIN_CAMERA_3AA_OTF         (1)
+#define MAIN_CAMERA_3AA_OTF         (0)
 #define MAIN_CAMERA_REPROCESSING    (true)
-#define MAIN_CAMERA_SCC_CAPTURE     (false)
+#define MAIN_CAMERA_SCC_CAPTURE     (true)
 
 #define FRONT_CAMERA_FLITE_NUM      FIMC_IS_VIDEO_SS1_NUM
 #define FRONT_CAMERA_3AA_NUM        FIMC_IS_VIDEO_3A1_NUM
@@ -157,7 +152,7 @@ enum REPROCESSING_BAYER_MODE {
 #define FRONT_CAMERA_REPROCESSING   (false)
 #define FRONT_CAMERA_SCC_CAPTURE    (true)
 
-#define REPROCESSING_3AA_NUM        FIMC_IS_VIDEO_3A1_NUM
+#define REPROCESSING_3AA_NUM        FIMC_IS_VIDEO_3A0_NUM
 
 #define REPROCESSING_SHIFT          (28)
 #define OTF_3AA_SHIFT               (24)
@@ -171,19 +166,18 @@ enum REPROCESSING_BAYER_MODE {
 #define NODE_PREFIX "/dev/video"
 
 #define PREVIEW_GSC_NODE_NUM            (4)  /* 4 = MSC from Exynos5420 */
-#define PICTURE_GSC_NODE_NUM            (5)  /* 0,1,2 = GSC */
+#define PICTURE_GSC_NODE_NUM            (1)  /* 0,1,2 = GSC */
 #define VIDEO_GSC_NODE_NUM              (4)
 
 #define MAX_BUFFERS                     (32)
-#define NUM_BAYER_BUFFERS               (6 + REPROCESSING_BAYER_HOLD_COUNT + SHOT_RECOVERY_COUNT)
-#define INIT_BAYER_BUFFERS              (5 + SHOT_RECOVERY_COUNT)
-#define NUM_PREVIEW_BUFFERS             (9 + SHOT_RECOVERY_COUNT)
-#define NUM_PREVIEW_SPARE_BUFFERS       (3)
+#define NUM_BAYER_BUFFERS               (6 + REPROCESSING_BAYER_HOLD_COUNT)
+#define INIT_BAYER_BUFFERS              (5)
+#define NUM_PREVIEW_BUFFERS             (8)
 #define NUM_PICTURE_BUFFERS             NUM_BAYER_BUFFERS
 #define NUM_REPROCESSING_BUFFERS        (1)
 #define NUM_RECORDING_BUFFERS           (8)
-#define NUM_FASTAESTABLE_BUFFER         (10)
-#define NUM_PREVIEW_BUFFERS_MARGIN      (2)
+#define NUM_FASTAESTABLE_BUFFER         (12)
+#define NUM_PREVIEW_BUFFERS_MARGIN      (1)
 #define NUM_FRAME_PREPARE_COUNT         (6)
 #define NUM_BURST_GSC_JPEG_INIT_BUFFER  (4) /* Number of pre-allicated buffer for burst shot
                                                Increasing this number will increase takePicture()'s
@@ -191,7 +185,7 @@ enum REPROCESSING_BAYER_MODE {
                                                (# of JPEG save thread) + 1 */
 
 /* TO DO : will remove */
-#define REPROCESSING_BAYER_HOLD_COUNT   (1)
+#define REPROCESSING_BAYER_HOLD_COUNT   (4)
 #define FRONT_NUM_BAYER_BUFFERS         (6)
 #define FRONT_NUM_PICTURE_BUFFERS       FRONT_NUM_BAYER_BUFFERS
 
@@ -208,10 +202,10 @@ enum REPROCESSING_BAYER_MODE {
 #define WARNING_SCP_THREAD_INTERVAL     (100000)
 #define MONITOR_THREAD_INTERVAL         (200000)
 
-#define FRAME_MIN_NUM (3)
+#define FRAME_MIN_NUM                   (3)
 
 #define EXYNOS_CAMERA_BUFFER_MAX_PLANES (4)     /* img buffer 3 + metadata 1 */
-#define EXYNOS_CAMERA_META_PLANE_SIZE   (32 * 1024)
+#define EXYNOS_CAMERA_META_PLANE_SIZE   (32*1024)
 #define GRALLOC_LOCK_FOR_CAMERA         (GRALLOC_SET_USAGE_FOR_CAMERA)
 
 #define EXYNOS_CAMERA_PREVIEW_FPS_REFERENCE  (60)
@@ -229,8 +223,8 @@ enum REPROCESSING_BAYER_MODE {
 #define PERFRAME_INFO_INDEX_1            (1)
 #define PERFRAME_INFO_INDEX_2            (2)
 
-#define PERFRAME_CONTROL_NODE_3AA
-/* #define PERFRAME_CONTROL_NODE_ISP */
+/*#define PERFRAME_CONTROL_NODE_3AA*/
+#define PERFRAME_CONTROL_NODE_ISP
 #define PERFRAME_INFO_3AA                       PERFRAME_INFO_INDEX_0
 #define PERFRAME_INFO_ISP                       PERFRAME_INFO_INDEX_1
 #define PERFRAME_INFO_DIRTY_REPROCESSING_ISP    PERFRAME_INFO_INDEX_0
@@ -244,7 +238,7 @@ enum REPROCESSING_BAYER_MODE {
 #define PERFRAME_BACK_3AC_POS           (0)
 #define PERFRAME_BACK_3AP_POS           (1)
 #define PERFRAME_BACK_SCC_POS           (0)
-#define PERFRAME_BACK_SCP_POS           (0)
+#define PERFRAME_BACK_SCP_POS           (1)
 
 #define PERFRAME_REPROCESSING_3AP_POS   (0)
 #define PERFRAME_REPROCESSING_SCC_POS   (0)
@@ -259,6 +253,18 @@ enum REPROCESSING_BAYER_MODE {
 
 #define DM_WAITING_TIME                  (30 * 1000) /* 30msec */
 #define DM_WAITING_COUNT                 (10)
+
+/* Pre-allocation of JPEG and GSC buffer
+   for burst shot.
+   Pros: Alleviating sluggish problem during the burst shot
+   Cons: Increase delay on burst starty(For pre-allocation)
+*/
+#define ENABLE_PRE_ALLOCATE_GSC_JPEG_BURST_BUF
+
+/*vision */
+/* #define VISION_DUMP */
+#define VISION_WIDTH                     (184)
+#define VISION_HEIGHT                    (104)
 
 /* callback state */
 #define CALLBACK_STATE_PREVIEW_META     (1)
@@ -282,7 +288,7 @@ enum YUV_RANGE {
 enum pipeline {
     PIPE_FLITE                  = 0,
     PIPE_3AC,
-    PIPE_ISP,
+    PIPE_ISP,    
     PIPE_3AA_ISP,
     PIPE_SCC,
     PIPE_SCP,
@@ -334,35 +340,31 @@ enum fimc_is_video_dev_num {
     FIMC_IS_VIDEO_MAX_NUM               = 149,
 };
 
-typedef enum
-{
+typedef enum {
     SENSOR_NAME_NOTHING             = 0,
-    SENSOR_NAME_S5K3H2              = 1, // 1 ~ 100, SLSI sensors
+    SENSOR_NAME_S5K3H2              = 1,
     SENSOR_NAME_S5K6A3              = 2,
-    SENSOR_NAME_S5K3H5              = 3,
-    SENSOR_NAME_S5K3H7              = 4,
-    SENSOR_NAME_S5K3H7_SUNNY        = 5,
-    SENSOR_NAME_S5K3H7_SUNNY_2M     = 6,
-    SENSOR_NAME_S5K6B2              = 7,
-    SENSOR_NAME_S5K3L2              = 8,
-    SENSOR_NAME_S5K4E5              = 9,
-    SENSOR_NAME_S5K2P2              = 10,
-    SENSOR_NAME_S5K8B1              = 11,
-    SENSOR_NAME_S5K1P2              = 12,
+    SENSOR_NAME_S5K3H5       = 3,
+    SENSOR_NAME_S5K3H7       = 4,
+    SENSOR_NAME_S5K3H7_SUNNY     = 5,
+    SENSOR_NAME_S5K3H7_SUNNY_2M  = 6,
+    SENSOR_NAME_S5K6B2       = 7,
+    SENSOR_NAME_S5K3L2       = 8,
+    SENSOR_NAME_S5K4E5       = 9,
+    SENSOR_NAME_S5K2P2       = 10,
+    SENSOR_NAME_S5K8B1       = 11,
+    SENSOR_NAME_S5K1P2       = 12,
+    SENSOR_NAME_S5K4H5       = 13,
 
-    SENSOR_NAME_IMX135              = 101, // 101 ~ 200 Sony sensors
+    SENSOR_NAME_IMX135       = 101, /* 101 ~ 200 Sony sensors */
+    SENSOR_NAME_IMX134       = 102,
+    SENSOR_NAME_IMX175       = 103,
 
-    SENSOR_NAME_SR261               = 201, // 201 ~ 300 Other vendor sensors
+    SENSOR_NAME_SR261        = 201, /* 201 ~ 300 Other vendor sensors */
 
     SENSOR_NAME_END,
-    SENSOR_NAME_CUSTOM              = 301,
-/* HACK: Remove this define after Driver commonized */
-    SENSOR_NAME_IMX134,
-    SENSOR_NAME_S5K4H5,
-    SENSOR_NAME_IMX175,
-/* End of HACK */
+    SENSOR_NAME_CUSTOM       = 301,
 }IS_SensorNameEnum;
-
 
 /* This struct used in recording callback */
 /* This struct passes to OMX */

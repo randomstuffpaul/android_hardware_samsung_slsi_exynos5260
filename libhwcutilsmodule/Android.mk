@@ -21,7 +21,7 @@ LOCAL_PRELINK_MODULE := false
 LOCAL_SHARED_LIBRARIES := liblog libutils libcutils libexynosutils libexynosv4l2 libsync libhwcutils libexynosgscaler libmpp
 
 ifeq ($(BOARD_USES_VIRTUAL_DISPLAY), true)
-LOCAL_CFLAGS += -DUSES_VIRTUAL_DISPLAY
+	LOCAL_CFLAGS += -DUSES_VIRTUAL_DISPLAY
 endif
 
 LOCAL_C_INCLUDES := \

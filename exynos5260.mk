@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,20 +14,6 @@
 # limitations under the License.
 #
 
-ifeq ($(TARGET_SOC), exynos5260)
-exynos5260_dirs := \
-	gralloc \
-	libhwjpeg \
-	libcamera \
-	libdisplaymodule \
-	libhwcutilsmodule \
-	libhdmimodule 
-
-ifeq ($(BOARD_USES_VIRTUAL_DISPLAY), true)
-exynos5260_dirs += \
-	libvirtualdisplaymodule
-endif
-
-include $(call all-named-subdir-makefiles,$(exynos5260_dirs))
-
-endif
+# Video Codecs
+PRODUCT_PACKAGES += \
+	libOMX.Exynos.VP8.Encoder

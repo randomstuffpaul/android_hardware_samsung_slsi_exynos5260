@@ -3,7 +3,7 @@
 ExynosVirtualDisplayModule::ExynosVirtualDisplayModule(struct exynos5_hwc_composer_device_1_t *pdev)
     : ExynosVirtualDisplay(pdev)
 {
-    mGLESFormat = HAL_PIXEL_FORMAT_RGBA_8888;
+    mGLESFormat = HAL_PIXEL_FORMAT_EXYNOS_ARGB_8888;
 }
 
 ExynosVirtualDisplayModule::~ExynosVirtualDisplayModule()

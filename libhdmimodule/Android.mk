@@ -31,12 +31,12 @@ LOCAL_C_INCLUDES := \
 	$(TOP)/hardware/samsung_slsi/exynos/libdisplay
 
 ifeq ($(BOARD_HDMI_INCAPABLE), true)
-LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/libhdmi_dummy
+	LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/libhdmi_dummy
 else
 ifeq ($(BOARD_USES_NEW_HDMI), true)
-LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/libhdmi
+	LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/libhdmi
 else
-LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/libhdmi_legacy
+	LOCAL_C_INCLUDES += $(TOP)/hardware/samsung_slsi/exynos/libhdmi_legacy
 endif
 endif
 

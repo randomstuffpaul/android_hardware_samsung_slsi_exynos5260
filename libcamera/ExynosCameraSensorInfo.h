@@ -143,6 +143,9 @@ public:
     int     autoFocusMacroPosition;
     int     deviceOrientation;
     uint32_t    bnsScaleRatio;
+#ifdef SAMSUNG_DOF
+    int lensPosTbl[6];
+#endif
 
     int     seriesShotMode;
 #ifdef BURST_CAPTURE
@@ -384,16 +387,8 @@ static int THUMBNAIL_LIST[][SIZE_OF_RESOLUTION] =
 
 static int VIDEO_LIST[][SIZE_OF_RESOLUTION] =
 {
-/* 
- * When GED camera App goes into Recording mode,
- * App set the Preview size to the 1st size of the video list.
- * In case the 1st size of the list is UHD,
- * although App do FHD recording, App do preview with UHD.
- * So, the useless electric current is wasted.
- * Conclusion: The 1st of the list set the LCD size until GED camera App is modified.
- */
-    { 1920, 1080, SIZE_RATIO_16_9},
     { 3840, 2160, SIZE_RATIO_16_9},
+    { 1920, 1080, SIZE_RATIO_16_9},
     { 1440, 1080, SIZE_RATIO_4_3},
     { 1280,  720, SIZE_RATIO_16_9},
     {  960,  720, SIZE_RATIO_4_3},
@@ -544,6 +539,9 @@ enum SHOT_MODE {
     SHOT_MODE_SPORTS         = 0x11,
     SHOT_MODE_SLOWMOTION     = 0x12,
     SHOT_MODE_MAGIC          = 0x13,
+#ifdef SAMSUNG_DOF
+    SHOT_MODE_OUTFOCUS	     = 0x14,
+#endif
     SHOT_MODE_MAX,
 };
 
@@ -555,7 +553,6 @@ enum SERIES_SHOT_MODE {
     SERIES_SHOT_MODE_ERASER     = 4,
     SERIES_SHOT_MODE_BEST_FACE  = 5,
     SERIES_SHOT_MODE_BEST_PHOTO = 6,
-    SERIES_SHOT_MODE_MAGIC      = 7,
     SERIES_SHOT_MODE_MAX,
 };
 }; /* namespace android */

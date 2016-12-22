@@ -49,9 +49,9 @@ ExynosJpegBase::ExynosJpegBase()
     t_bFlagExcute = false;
     t_bFlagSelect = false;
     t_iCacheValue = 0;
-    t_iSelectNode = 0; // 0:jpeg2 hx , 1:jpeg2 hx , 2:jpeg hx;
     t_iPlaneNum = 0;
     t_iJpegFd = 0;
+    t_iSelectNode = 0;
 }
 
 ExynosJpegBase::~ExynosJpegBase()
@@ -379,7 +379,6 @@ int ExynosJpegBase::create(enum MODE eMode)
     t_bFlagExcute = false;
     t_bFlagSelect = false;
     t_iCacheValue = 0;
-    t_iSelectNode = 0;
     t_iPlaneNum = 0;
 
     return ERROR_NONE;
@@ -716,7 +715,7 @@ int ExynosJpegBase::setColorBufSize(int iFormat, int *piBufSize, int iSize, int 
     case V4L2_PIX_FMT_NV12:
     case V4L2_PIX_FMT_YUV420:
     case V4L2_PIX_FMT_YVU420:
-        pBufSize[0] = (width * height * 3) >> 1;
+        pBufSize[0] = (width * height * 3) / 2;
         pBufSize[1] = 0;
         pBufSize[2] = 0;
         break;
