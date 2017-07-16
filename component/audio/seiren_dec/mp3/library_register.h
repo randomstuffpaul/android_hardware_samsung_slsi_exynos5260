@@ -24,8 +24,8 @@
  *   2012.02.28 : Create
  */
 
-#ifndef EXYNOS_OMX_MP3_DEC_REG
-#define EXYNOS_OMX_MP3_DEC_REG
+#ifndef EXYNOS_OMX_AAC_DEC_REG
+#define EXYNOS_OMX_AAC_DEC_REG
 
 #include "Exynos_OMX_Def.h"
 #include "OMX_Component.h"
@@ -36,9 +36,9 @@
 #define MAX_COMPONENT_NUM         1
 #define MAX_COMPONENT_ROLE_NUM    1
 
-/* MP3 */
-#define EXYNOS_OMX_COMPONENT_MP3_DEC         "OMX.Exynos.MP3.Decoder"
-#define EXYNOS_OMX_COMPONENT_MP3_DEC_ROLE    "audio_decoder.mp3"
+/* AAC */
+#define EXYNOS_OMX_COMPONENT_AAC_DEC         "OMX.Exynos.AAC.Decoder"
+#define EXYNOS_OMX_COMPONENT_AAC_DEC_ROLE    "audio_decoder.aac"
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,5 +50,5 @@ OSCL_EXPORT_REF int Exynos_OMX_COMPONENT_Library_Register(ExynosRegisterComponen
 };
 #endif
 
-#endif /* EXYNOS_OMX_MP3_DEC_REG */
+#endif /* EXYNOS_OMX_AAC_DEC_REG */
 

@@ -4,10 +4,10 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
-	Exynos_OMX_Mp3dec.c \
+	Exynos_OMX_Aacdec.c \
 	library_register.c
 
-LOCAL_MODULE := libOMX.Exynos.MP3.Decoder
+LOCAL_MODULE := libOMX.Exynos.AAC.Decoder
 LOCAL_MODULE_RELATIVE_PATH := omx
 
 LOCAL_CFLAGS :=

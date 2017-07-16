@@ -16,7 +16,7 @@
  */
 
 /*
- * @file      Exynos_OMX_Mp3dec.h
+ * @file      Exynos_OMX_Aacdec.h
  * @brief
  * @author    Sungyeon Kim (sy85.kim@samsung.com)
  * @version   1.0.0
@@ -24,14 +24,20 @@
  *   2012.12.22 : Create
  */
 
-#ifndef EXYNOS_OMX_MP3_DEC_COMPONENT
-#define EXYNOS_OMX_MP3_DEC_COMPONENT
+#ifndef EXYNOS_OMX_AAC_DEC_COMPONENT
+#define EXYNOS_OMX_AAC_DEC_COMPONENT
 
 #include "Exynos_OMX_Def.h"
 #include "OMX_Component.h"
 #include "seiren_hw.h"
 
-typedef struct _EXYNOS_Seiren_MP3_HANDLE
+static const uint32_t aac_sample_rates[] =
+{
+    96000, 88200, 64000, 48000, 44100, 32000,
+    24000, 22050, 16000, 12000, 11025, 8000
+};
+
+typedef struct _EXYNOS_Seiren_AAC_HANDLE
 {
     OMX_U32          hSeirenHandle;
     OMX_BOOL         bConfiguredSeiren;
@@ -40,17 +46,17 @@ typedef struct _EXYNOS_Seiren_MP3_HANDLE
     OMX_S32          returnCodec;
     audio_mem_info_t input_mem_pool;
     audio_mem_info_t output_mem_pool;
-} EXYNOS_Seiren_MP3_HANDLE;
+} EXYNOS_Seiren_AAC_HANDLE;
 
-typedef struct _EXYNOS_MP3_HANDLE
+typedef struct _EXYNOS_AAC_HANDLE
 {
     /* OMX Codec specific */
-    OMX_AUDIO_PARAM_MP3TYPE     mp3Param;
-    OMX_AUDIO_PARAM_PCMMODETYPE pcmParam;
+    OMX_AUDIO_PARAM_AACPROFILETYPE aacParam;
+    OMX_AUDIO_PARAM_PCMMODETYPE    pcmParam;
 
     /* SEC Seiren Codec specific */
-    EXYNOS_Seiren_MP3_HANDLE      hSeirenMp3Handle;
-} EXYNOS_MP3_HANDLE;
+    EXYNOS_Seiren_AAC_HANDLE       hSeirenAacHandle;
+} EXYNOS_AAC_HANDLE;
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,4 +69,4 @@ OSCL_EXPORT_REF OMX_ERRORTYPE Exynos_OMX_ComponentInit(OMX_HANDLETYPE hComponent
 };
 #endif
 
-#endif /* EXYNOS_OMX_MP3_DEC_COMPONENT */
+#endif /* EXYNOS_OMX_AAC_DEC_COMPONENT */

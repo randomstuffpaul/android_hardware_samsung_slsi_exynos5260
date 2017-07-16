@@ -34,7 +34,7 @@
 #include "library_register.h"
 
 #undef  EXYNOS_LOG_TAG
-#define EXYNOS_LOG_TAG    "EXYNOS_MP3_DEC"
+#define EXYNOS_LOG_TAG    "EXYNOS_AAC_DEC"
 #define EXYNOS_LOG_OFF
 #include "Exynos_OSAL_Log.h"
 
@@ -46,9 +46,9 @@ OSCL_EXPORT_REF int Exynos_OMX_COMPONENT_Library_Register(ExynosRegisterComponen
     if (ppExynosComponent == NULL)
         goto EXIT;
 
-    /* component 1 - audio decoder MP3 */
-    Exynos_OSAL_Strcpy(ppExynosComponent[0]->componentName, EXYNOS_OMX_COMPONENT_MP3_DEC);
-    Exynos_OSAL_Strcpy(ppExynosComponent[0]->roles[0], EXYNOS_OMX_COMPONENT_MP3_DEC_ROLE);
+    /* component 1 - audio decoder AAC */
+    Exynos_OSAL_Strcpy(ppExynosComponent[0]->componentName, EXYNOS_OMX_COMPONENT_AAC_DEC);
+    Exynos_OSAL_Strcpy(ppExynosComponent[0]->roles[0], EXYNOS_OMX_COMPONENT_AAC_DEC_ROLE);
     ppExynosComponent[0]->totalRoleNum = MAX_COMPONENT_ROLE_NUM;
 
 EXIT:

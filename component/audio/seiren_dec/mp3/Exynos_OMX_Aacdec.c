@@ -16,7 +16,7 @@
  */
 
 /*
- * @file      Exynos_OMX_Mp3dec.c
+ * @file      Exynos_OMX_Aacdec.c
  * @brief
  * @author    Sungyeon Kim (sy85.kim@samsung.com)
  * @version   1.0.0
@@ -36,10 +36,10 @@
 #include "Exynos_OSAL_Semaphore.h"
 #include "Exynos_OSAL_Thread.h"
 #include "library_register.h"
-#include "Exynos_OMX_Mp3dec.h"
+#include "Exynos_OMX_Aacdec.h"
 
 #undef  EXYNOS_LOG_TAG
-#define EXYNOS_LOG_TAG    "EXYNOS_MP3_DEC"
+#define EXYNOS_LOG_TAG    "EXYNOS_AAC_DEC"
 #define EXYNOS_LOG_OFF
 #include "Exynos_OSAL_Log.h"
 
@@ -51,7 +51,7 @@ FILE *inFile;
 FILE *outFile;
 #endif
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_GetParameter(
+OMX_ERRORTYPE Exynos_Seiren_AacDec_GetParameter(
     OMX_IN    OMX_HANDLETYPE hComponent,
     OMX_IN    OMX_INDEXTYPE  nParamIndex,
     OMX_INOUT OMX_PTR        pComponentParameterStructure)
@@ -83,33 +83,33 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_GetParameter(
     }
 
     switch (nParamIndex) {
-    case OMX_IndexParamAudioMp3:
+    case OMX_IndexParamAudioAac:
     {
-        OMX_AUDIO_PARAM_MP3TYPE *pDstMp3Param = (OMX_AUDIO_PARAM_MP3TYPE *)pComponentParameterStructure;
-        OMX_AUDIO_PARAM_MP3TYPE *pSrcMp3Param = NULL;
-        EXYNOS_MP3_HANDLE       *pMp3Dec = NULL;
+        OMX_AUDIO_PARAM_AACPROFILETYPE *pDstAacParam = (OMX_AUDIO_PARAM_AACPROFILETYPE *)pComponentParameterStructure;
+        OMX_AUDIO_PARAM_AACPROFILETYPE *pSrcAacParam = NULL;
+        EXYNOS_AAC_HANDLE       *pAacDec = NULL;
 
-        ret = Exynos_OMX_Check_SizeVersion(pDstMp3Param, sizeof(OMX_AUDIO_PARAM_MP3TYPE));
+        ret = Exynos_OMX_Check_SizeVersion(pDstAacParam, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
         if (ret != OMX_ErrorNone) {
             goto EXIT;
         }
 
-        if (pDstMp3Param->nPortIndex >= ALL_PORT_NUM) {
+        if (pDstAacParam->nPortIndex >= ALL_PORT_NUM) {
             ret = OMX_ErrorBadPortIndex;
             goto EXIT;
         }
 
-        pMp3Dec = (EXYNOS_MP3_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
-        pSrcMp3Param = &pMp3Dec->mp3Param;
+        pAacDec = (EXYNOS_AAC_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
+        pSrcAacParam = &pAacDec->aacParam;
 
-        Exynos_OSAL_Memcpy(pDstMp3Param, pSrcMp3Param, sizeof(OMX_AUDIO_PARAM_MP3TYPE));
+        Exynos_OSAL_Memcpy(pDstAacParam, pSrcAacParam, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
     }
         break;
     case OMX_IndexParamAudioPcm:
     {
         OMX_AUDIO_PARAM_PCMMODETYPE *pDstPcmParam = (OMX_AUDIO_PARAM_PCMMODETYPE *)pComponentParameterStructure;
         OMX_AUDIO_PARAM_PCMMODETYPE *pSrcPcmParam = NULL;
-        EXYNOS_MP3_HANDLE           *pMp3Dec = NULL;
+        EXYNOS_AAC_HANDLE           *pAacDec = NULL;
 
         ret = Exynos_OMX_Check_SizeVersion(pDstPcmParam, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
         if (ret != OMX_ErrorNone) {
@@ -121,8 +121,8 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_GetParameter(
             goto EXIT;
         }
 
-        pMp3Dec = (EXYNOS_MP3_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
-        pSrcPcmParam = &pMp3Dec->pcmParam;
+        pAacDec = (EXYNOS_AAC_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
+        pSrcPcmParam = &pAacDec->pcmParam;
 
         Exynos_OSAL_Memcpy(pDstPcmParam, pSrcPcmParam, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
     }
@@ -137,7 +137,7 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_GetParameter(
             goto EXIT;
         }
 
-        Exynos_OSAL_Strcpy((char *)pComponentRole->cRole, EXYNOS_OMX_COMPONENT_MP3_DEC_ROLE);
+        Exynos_OSAL_Strcpy((char *)pComponentRole->cRole, EXYNOS_OMX_COMPONENT_AAC_DEC_ROLE);
     }
         break;
     default:
@@ -150,7 +150,7 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_SetParameter(
+OMX_ERRORTYPE Exynos_Seiren_AacDec_SetParameter(
     OMX_IN OMX_HANDLETYPE hComponent,
     OMX_IN OMX_INDEXTYPE  nIndex,
     OMX_IN OMX_PTR        pComponentParameterStructure)
@@ -182,33 +182,45 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_SetParameter(
     }
 
     switch (nIndex) {
-    case OMX_IndexParamAudioMp3:
+    case OMX_IndexParamAudioAac:
     {
-        OMX_AUDIO_PARAM_MP3TYPE *pDstMp3Param = NULL;
-        OMX_AUDIO_PARAM_MP3TYPE *pSrcMp3Param = (OMX_AUDIO_PARAM_MP3TYPE *)pComponentParameterStructure;
-        EXYNOS_MP3_HANDLE       *pMp3Dec = NULL;
+        OMX_AUDIO_PARAM_AACPROFILETYPE *pDstAacParam = NULL;
+        OMX_AUDIO_PARAM_AACPROFILETYPE *pSrcAacParam = (OMX_AUDIO_PARAM_AACPROFILETYPE *)pComponentParameterStructure;
+        EXYNOS_AAC_HANDLE       *pAacDec = NULL;
 
-        ret = Exynos_OMX_Check_SizeVersion(pSrcMp3Param, sizeof(OMX_AUDIO_PARAM_MP3TYPE));
+        ret = Exynos_OMX_Check_SizeVersion(pSrcAacParam, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
         if (ret != OMX_ErrorNone) {
             goto EXIT;
         }
 
-        if (pSrcMp3Param->nPortIndex >= ALL_PORT_NUM) {
+        if (pSrcAacParam->nPortIndex >= ALL_PORT_NUM) {
             ret = OMX_ErrorBadPortIndex;
             goto EXIT;
         }
 
-        pMp3Dec = (EXYNOS_MP3_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
-        pDstMp3Param = &pMp3Dec->mp3Param;
+        pAacDec = (EXYNOS_AAC_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
+        pDstAacParam = &pAacDec->aacParam;
 
-        Exynos_OSAL_Memcpy(pDstMp3Param, pSrcMp3Param, sizeof(OMX_AUDIO_PARAM_MP3TYPE));
+        Exynos_OSAL_Memcpy(pDstAacParam, pSrcAacParam, sizeof(OMX_AUDIO_PARAM_AACPROFILETYPE));
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nSize : %d  \e[0m", pDstAacParam->nSize);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nPortIndex : %d  \e[0m", pDstAacParam->nPortIndex);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nChannels : %d  \e[0m", pDstAacParam->nChannels);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nSampleRate : %d  \e[0m", pDstAacParam->nSampleRate);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nBitRate : %d  \e[0m", pDstAacParam->nBitRate);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nAudioBandWidth : %d  \e[0m", pDstAacParam->nAudioBandWidth);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nFrameLength : %d  \e[0m", pDstAacParam->nFrameLength);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nAACtools : %d  \e[0m", pDstAacParam->nAACtools);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m nAACERtools : %d  \e[0m", pDstAacParam->nAACERtools);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m eAACProfile : %d  \e[0m", pDstAacParam->eAACProfile);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m eAACStreamFormat : %d  \e[0m", pDstAacParam->eAACStreamFormat);
+        Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33;46m eChannelMode : %d  \e[0m", pDstAacParam->eChannelMode);
     }
         break;
     case OMX_IndexParamAudioPcm:
     {
         OMX_AUDIO_PARAM_PCMMODETYPE *pDstPcmParam = NULL;
         OMX_AUDIO_PARAM_PCMMODETYPE *pSrcPcmParam = (OMX_AUDIO_PARAM_PCMMODETYPE *)pComponentParameterStructure;
-        EXYNOS_MP3_HANDLE           *pMp3Dec = NULL;
+        EXYNOS_AAC_HANDLE           *pAacDec = NULL;
 
         ret = Exynos_OMX_Check_SizeVersion(pSrcPcmParam, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
         if (ret != OMX_ErrorNone) {
@@ -220,8 +232,8 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_SetParameter(
             goto EXIT;
         }
 
-        pMp3Dec = (EXYNOS_MP3_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
-        pDstPcmParam = &pMp3Dec->pcmParam;
+        pAacDec = (EXYNOS_AAC_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
+        pDstPcmParam = &pAacDec->pcmParam;
 
         Exynos_OSAL_Memcpy(pDstPcmParam, pSrcPcmParam, sizeof(OMX_AUDIO_PARAM_PCMMODETYPE));
     }
@@ -240,8 +252,8 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_SetParameter(
             goto EXIT;
         }
 
-        if (!Exynos_OSAL_Strncmp((char*)pComponentRole->cRole, EXYNOS_OMX_COMPONENT_MP3_DEC_ROLE, 16)) {
-            pExynosComponent->pExynosPort[INPUT_PORT_INDEX].portDefinition.format.audio.eEncoding = OMX_AUDIO_CodingMP3;
+        if (!Exynos_OSAL_Strcmp((char*)pComponentRole->cRole, EXYNOS_OMX_COMPONENT_AAC_DEC_ROLE)) {
+            pExynosComponent->pExynosPort[INPUT_PORT_INDEX].portDefinition.format.audio.eEncoding = OMX_AUDIO_CodingAAC;
         } else {
             ret = OMX_ErrorBadParameter;
             goto EXIT;
@@ -258,7 +270,7 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_GetConfig(
+OMX_ERRORTYPE Exynos_Seiren_AacDec_GetConfig(
     OMX_IN OMX_HANDLETYPE hComponent,
     OMX_IN OMX_INDEXTYPE  nIndex,
     OMX_IN OMX_PTR        pComponentConfigStructure)
@@ -301,7 +313,7 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_SetConfig(
+OMX_ERRORTYPE Exynos_Seiren_AacDec_SetConfig(
     OMX_IN OMX_HANDLETYPE hComponent,
     OMX_IN OMX_INDEXTYPE  nIndex,
     OMX_IN OMX_PTR        pComponentConfigStructure)
@@ -344,7 +356,7 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_GetExtensionIndex(
+OMX_ERRORTYPE Exynos_Seiren_AacDec_GetExtensionIndex(
     OMX_IN OMX_HANDLETYPE  hComponent,
     OMX_IN OMX_STRING      cParameterName,
     OMX_OUT OMX_INDEXTYPE *pIndexType)
@@ -388,7 +400,7 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_ComponentRoleEnum(
+OMX_ERRORTYPE Exynos_Seiren_AacDec_ComponentRoleEnum(
     OMX_IN  OMX_HANDLETYPE hComponent,
     OMX_OUT OMX_U8        *cRole,
     OMX_IN  OMX_U32        nIndex)
@@ -424,7 +436,7 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_ComponentRoleEnum(
         goto EXIT;
     }
 
-    Exynos_OSAL_Strcpy((char *)cRole, EXYNOS_OMX_COMPONENT_MP3_DEC_ROLE);
+    Exynos_OSAL_Strcpy((char *)cRole, EXYNOS_OMX_COMPONENT_AAC_DEC_ROLE);
 
 EXIT:
     FunctionOut();
@@ -432,25 +444,25 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_Init(OMX_COMPONENTTYPE *pOMXComponent)
+OMX_ERRORTYPE Exynos_Seiren_AacDec_Init(OMX_COMPONENTTYPE *pOMXComponent)
 {
     OMX_ERRORTYPE                  ret = OMX_ErrorNone;
     EXYNOS_OMX_BASECOMPONENT      *pExynosComponent = (EXYNOS_OMX_BASECOMPONENT *)pOMXComponent->pComponentPrivate;
     EXYNOS_OMX_AUDIODEC_COMPONENT *pAudioDec = (EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle;
-    EXYNOS_MP3_HANDLE             *pMp3Dec = (EXYNOS_MP3_HANDLE *)pAudioDec->hCodecHandle;
+    EXYNOS_AAC_HANDLE             *pAacDec = (EXYNOS_AAC_HANDLE *)pAudioDec->hCodecHandle;
 
     FunctionIn();
 
     Exynos_OSAL_Memset(pExynosComponent->timeStamp, -19771003, sizeof(OMX_TICKS) * MAX_TIMESTAMP);
     Exynos_OSAL_Memset(pExynosComponent->nFlags, 0, sizeof(OMX_U32) * MAX_FLAGS);
-    pExynosComponent->bUseFlagEOF = OMX_TRUE; /* Mp3 extractor should parse into frame unit. */
+    pExynosComponent->bUseFlagEOF = OMX_TRUE; /* Aac extractor should parse into frame unit. */
     pExynosComponent->bSaveFlagEOS = OMX_FALSE;
-    pMp3Dec->hSeirenMp3Handle.bConfiguredSeiren = OMX_FALSE;
-    pMp3Dec->hSeirenMp3Handle.bSeirenSendEOS = OMX_FALSE;
+    pAacDec->hSeirenAacHandle.bConfiguredSeiren = OMX_FALSE;
+    pAacDec->hSeirenAacHandle.bSeirenSendEOS = OMX_FALSE;
     pExynosComponent->getAllDelayBuffer = OMX_FALSE;
 
 #ifdef Seiren_DUMP_TO_FILE
-    inFile = fopen("/data/InFile.mp3", "w+");
+    inFile = fopen("/data/InFile.aac", "w+");
     outFile = fopen("/data/OutFile.pcm", "w+");
 #endif
 
@@ -460,7 +472,7 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_Terminate(OMX_COMPONENTTYPE *pOMXComponent)
+OMX_ERRORTYPE Exynos_Seiren_AacDec_Terminate(OMX_COMPONENTTYPE *pOMXComponent)
 {
     OMX_ERRORTYPE                  ret = OMX_ErrorNone;
     EXYNOS_OMX_BASECOMPONENT      *pExynosComponent = (EXYNOS_OMX_BASECOMPONENT *)pOMXComponent->pComponentPrivate;
@@ -478,19 +490,19 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3_Decode_Block(OMX_COMPONENTTYPE *pOMXComponent, EXYNOS_OMX_DATA *pInputData, EXYNOS_OMX_DATA *pOutputData)
+OMX_ERRORTYPE Exynos_Seiren_Aac_Decode_Block(OMX_COMPONENTTYPE *pOMXComponent, EXYNOS_OMX_DATA *pInputData, EXYNOS_OMX_DATA *pOutputData)
 {
     OMX_ERRORTYPE                  ret = OMX_ErrorNone;
     EXYNOS_OMX_BASECOMPONENT      *pExynosComponent = (EXYNOS_OMX_BASECOMPONENT *)pOMXComponent->pComponentPrivate;
     EXYNOS_OMX_AUDIODEC_COMPONENT *pAudioDec = (EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle;
-    EXYNOS_MP3_HANDLE             *pMp3Dec = (EXYNOS_MP3_HANDLE *)pAudioDec->hCodecHandle;
+    EXYNOS_AAC_HANDLE             *pAacDec = (EXYNOS_AAC_HANDLE *)pAudioDec->hCodecHandle;
     int                            returnCodec = 0;
     unsigned long                  isSeirenStopped = 0;
     OMX_BOOL                       isSeirenIbufOverflow = OMX_FALSE;
 
-    u32 fd = pMp3Dec->hSeirenMp3Handle.hSeirenHandle;
-    audio_mem_info_t input_mem_pool = pMp3Dec->hSeirenMp3Handle.input_mem_pool;
-    audio_mem_info_t output_mem_pool = pMp3Dec->hSeirenMp3Handle.output_mem_pool;
+    u32 fd = pAacDec->hSeirenAacHandle.hSeirenHandle;
+    audio_mem_info_t input_mem_pool = pAacDec->hSeirenAacHandle.input_mem_pool;
+    audio_mem_info_t output_mem_pool = pAacDec->hSeirenAacHandle.output_mem_pool;
     unsigned long sample_rate, channels;
     int consumed_size = 0;
     sample_rate = channels = 0;
@@ -507,19 +519,32 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3_Decode_Block(OMX_COMPONENTTYPE *pOMXComponent, E
     pOutputData->timeStamp = pInputData->timeStamp;
     pOutputData->nFlags = pInputData->nFlags & (~OMX_BUFFERFLAG_EOS);
 
-    /* Decoding mp3 frames by Seiren */
+    /* Decoding aac frames by Seiren */
     if (pExynosComponent->getAllDelayBuffer == OMX_FALSE) {
         input_mem_pool.data_size = pInputData->dataLen;
-        unsigned char* pt = (unsigned char*)input_mem_pool.virt_addr;
+        char* pt = input_mem_pool.virt_addr;
         Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "\e[1;33m %02X %02X %02X %02X %02X %02X %lld \e[0m", *pt,*(pt+1),*(pt+2),*(pt+3),*(pt+4), *(pt+5), pInputData->timeStamp);
+
+        if (pInputData->nFlags & OMX_BUFFERFLAG_CODECCONFIG) {
+            ADec_ConfigSignal(fd);
+            unsigned char sample_rate_index = ((*(pt+1)) >> 7 & 0x01) |
+                                              ((*pt)     << 1 & 0x0e);
+            unsigned char num_of_channel = ((*(pt+1)) >> 3 & 0x07);
+            Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "index %x ", sample_rate_index);
+            ADec_SetParams(fd, PCM_PARAM_SAMPLE_RATE, aac_sample_rates[sample_rate_index]);
+            ADec_SetParams(fd, PCM_PARAM_NUM_OF_CH, num_of_channel);
+            ADec_SendStream(fd, &input_mem_pool, &consumed_size);
+            goto EXIT;
+        }
         returnCodec = ADec_SendStream(fd, &input_mem_pool, &consumed_size);
+
         Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "ProcessedSize : %d    return : %d", consumed_size, returnCodec);
         if (pInputData->nFlags & OMX_BUFFERFLAG_EOS)
             Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "EOS!!");
         if (returnCodec >= 0) {
             if (pInputData->nFlags & OMX_BUFFERFLAG_EOS) {
                 ADec_SendEOS(fd);
-                pMp3Dec->hSeirenMp3Handle.bSeirenSendEOS = OMX_TRUE;
+                pAacDec->hSeirenAacHandle.bSeirenSendEOS = OMX_TRUE;
             }
         } else if (returnCodec < 0) {
             ret = OMX_ErrorCodecDecode;
@@ -527,10 +552,10 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3_Decode_Block(OMX_COMPONENTTYPE *pOMXComponent, E
         }
     }
 
-    if (pMp3Dec->hSeirenMp3Handle.bConfiguredSeiren == OMX_FALSE) {
+    if (pAacDec->hSeirenAacHandle.bConfiguredSeiren == OMX_FALSE) {
         if ((pInputData->dataLen <= 0) && (pInputData->nFlags & OMX_BUFFERFLAG_EOS)) {
             pOutputData->nFlags |= OMX_BUFFERFLAG_EOS;
-            pMp3Dec->hSeirenMp3Handle.bSeirenSendEOS = OMX_FALSE;
+            pAacDec->hSeirenAacHandle.bSeirenSendEOS = OMX_FALSE;
             ret = OMX_ErrorNone;
             goto EXIT;
         }
@@ -545,24 +570,24 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3_Decode_Block(OMX_COMPONENTTYPE *pOMXComponent, E
         }
 
         if (!sample_rate || !channels) {
-            if (pMp3Dec->hSeirenMp3Handle.bSeirenSendEOS == OMX_TRUE) {
+            if (pAacDec->hSeirenAacHandle.bSeirenSendEOS == OMX_TRUE) {
                 pOutputData->dataLen = 0;
                 pExynosComponent->getAllDelayBuffer = OMX_TRUE;
             } else {
                 pExynosComponent->getAllDelayBuffer = OMX_FALSE;
             }
             ret = OMX_ErrorNone;
-            goto EXIT;
+            goto EXIT;//
         }
 
         Exynos_OSAL_Log(EXYNOS_LOG_TRACE, "numChannels(%d), samplingRate(%d)",
             channels, sample_rate);
 
-        if (pMp3Dec->pcmParam.nChannels != channels ||
-            pMp3Dec->pcmParam.nSamplingRate != sample_rate) {
+        if (pAacDec->pcmParam.nChannels != channels ||
+            pAacDec->pcmParam.nSamplingRate != sample_rate) {
             /* Change channel count and sampling rate information */
-            pMp3Dec->pcmParam.nChannels = channels;
-            pMp3Dec->pcmParam.nSamplingRate = sample_rate;
+            pAacDec->pcmParam.nChannels = channels;
+            pAacDec->pcmParam.nSamplingRate = sample_rate;
 
             /* Send Port Settings changed call back */
             (*(pExynosComponent->pCallbacks->EventHandler))
@@ -574,9 +599,9 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3_Decode_Block(OMX_COMPONENTTYPE *pOMXComponent, E
                    NULL);
         }
 
-        pMp3Dec->hSeirenMp3Handle.bConfiguredSeiren = OMX_TRUE;
+        pAacDec->hSeirenAacHandle.bConfiguredSeiren = OMX_TRUE;
 
-        if (pMp3Dec->hSeirenMp3Handle.bSeirenSendEOS == OMX_TRUE) {
+        if (pAacDec->hSeirenAacHandle.bSeirenSendEOS == OMX_TRUE) {
             pOutputData->dataLen = 0;
             pExynosComponent->getAllDelayBuffer = OMX_TRUE;
             ret = OMX_ErrorInputDataDecodeYet;
@@ -603,7 +628,7 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3_Decode_Block(OMX_COMPONENTTYPE *pOMXComponent, E
 #endif
 
     /* Delay EOS signal until all the PCM is returned from the Seiren driver. */
-    if (pMp3Dec->hSeirenMp3Handle.bSeirenSendEOS == OMX_TRUE) {
+    if (pAacDec->hSeirenAacHandle.bSeirenSendEOS == OMX_TRUE) {
         if (pInputData->nFlags & OMX_BUFFERFLAG_EOS) {
             returnCodec = ADec_GetParams(fd, ADEC_PARAM_GET_OUTPUT_STATUS, &isSeirenStopped);
             if (returnCodec != 0)
@@ -611,14 +636,14 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3_Decode_Block(OMX_COMPONENTTYPE *pOMXComponent, E
             if (isSeirenStopped == 1) {
                 pOutputData->nFlags |= OMX_BUFFERFLAG_EOS;
                 pExynosComponent->getAllDelayBuffer = OMX_FALSE;
-                pMp3Dec->hSeirenMp3Handle.bSeirenSendEOS = OMX_FALSE; /* for repeating one song */
+                pAacDec->hSeirenAacHandle.bSeirenSendEOS = OMX_FALSE; /* for repeating one song */
                 ret = OMX_ErrorNone;
             } else {
                 pExynosComponent->getAllDelayBuffer = OMX_TRUE;
                 ret = OMX_ErrorInputDataDecodeYet;
             }
         } else { /* Flush after EOS */
-            pMp3Dec->hSeirenMp3Handle.bSeirenSendEOS = OMX_FALSE;
+            pAacDec->hSeirenAacHandle.bSeirenSendEOS = OMX_FALSE;
         }
     }
 EXIT:
@@ -627,7 +652,7 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_bufferProcess(OMX_COMPONENTTYPE *pOMXComponent, EXYNOS_OMX_DATA *pInputData, EXYNOS_OMX_DATA *pOutputData)
+OMX_ERRORTYPE Exynos_Seiren_AacDec_bufferProcess(OMX_COMPONENTTYPE *pOMXComponent, EXYNOS_OMX_DATA *pInputData, EXYNOS_OMX_DATA *pOutputData)
 {
     OMX_ERRORTYPE             ret = OMX_ErrorNone;
     EXYNOS_OMX_BASECOMPONENT *pExynosComponent = (EXYNOS_OMX_BASECOMPONENT *)pOMXComponent->pComponentPrivate;
@@ -654,7 +679,7 @@ OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_bufferProcess(OMX_COMPONENTTYPE *pOMXComponen
         goto EXIT;
     }
 
-    ret = Exynos_Seiren_Mp3_Decode_Block(pOMXComponent, pInputData, pOutputData);
+    ret = Exynos_Seiren_Aac_Decode_Block(pOMXComponent, pInputData, pOutputData);
 
     if (ret != OMX_ErrorNone) {
         if (ret == (OMX_ERRORTYPE)OMX_ErrorInputDataDecodeYet) {
@@ -681,14 +706,14 @@ EXIT:
     return ret;
 }
 
-OMX_ERRORTYPE Exynos_Seiren_Mp3Dec_flushSeiren(OMX_COMPONENTTYPE *pOMXComponent, SEIREN_PORTTYPE type)
+OMX_ERRORTYPE Exynos_Seiren_AacDec_flushSeiren(OMX_COMPONENTTYPE *pOMXComponent, SEIREN_PORTTYPE type)
 {
     OMX_ERRORTYPE                  ret = OMX_ErrorNone;
     EXYNOS_OMX_BASECOMPONENT      *pExynosComponent = (EXYNOS_OMX_BASECOMPONENT *)pOMXComponent->pComponentPrivate;
     EXYNOS_OMX_AUDIODEC_COMPONENT *pAudioDec = (EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle;
-    EXYNOS_MP3_HANDLE             *pMp3Dec = (EXYNOS_MP3_HANDLE *)pAudioDec->hCodecHandle;
+    EXYNOS_AAC_HANDLE             *pAacDec = (EXYNOS_AAC_HANDLE *)pAudioDec->hCodecHandle;
 
-    int fd = pMp3Dec->hSeirenMp3Handle.hSeirenHandle;
+    int fd = pAacDec->hSeirenAacHandle.hSeirenHandle;
     return ADec_Flush(fd, type);
 }
 
@@ -699,7 +724,7 @@ OSCL_EXPORT_REF OMX_ERRORTYPE Exynos_OMX_ComponentInit(OMX_HANDLETYPE hComponent
     EXYNOS_OMX_BASECOMPONENT      *pExynosComponent = NULL;
     EXYNOS_OMX_BASEPORT           *pExynosPort = NULL;
     EXYNOS_OMX_AUDIODEC_COMPONENT *pAudioDec = NULL;
-    EXYNOS_MP3_HANDLE             *pMp3Dec = NULL;
+    EXYNOS_AAC_HANDLE             *pAacDec = NULL;
     audio_mem_info_t               input_mem_pool;
     audio_mem_info_t               output_mem_pool;
     OMX_S32                        fd;
@@ -713,7 +738,7 @@ OSCL_EXPORT_REF OMX_ERRORTYPE Exynos_OMX_ComponentInit(OMX_HANDLETYPE hComponent
         ret = OMX_ErrorBadParameter;
         goto EXIT;
     }
-    if (Exynos_OSAL_Strcmp(EXYNOS_OMX_COMPONENT_MP3_DEC, componentName) != 0) {
+    if (Exynos_OSAL_Strcmp(EXYNOS_OMX_COMPONENT_AAC_DEC, componentName) != 0) {
         Exynos_OSAL_Log(EXYNOS_LOG_ERROR, "%s: componentName(%s) error, ret: %X", __FUNCTION__, componentName, ret);
         ret = OMX_ErrorBadParameter;
         goto EXIT;
@@ -735,34 +760,36 @@ OSCL_EXPORT_REF OMX_ERRORTYPE Exynos_OMX_ComponentInit(OMX_HANDLETYPE hComponent
         goto EXIT_ERROR_1;
     }
     Exynos_OSAL_Memset(pExynosComponent->componentName, 0, MAX_OMX_COMPONENT_NAME_SIZE);
-    Exynos_OSAL_Strcpy(pExynosComponent->componentName, EXYNOS_OMX_COMPONENT_MP3_DEC);
+    Exynos_OSAL_Strcpy(pExynosComponent->componentName, EXYNOS_OMX_COMPONENT_AAC_DEC);
 
-    pMp3Dec = Exynos_OSAL_Malloc(sizeof(EXYNOS_MP3_HANDLE));
-    if (pMp3Dec == NULL) {
-        Exynos_OSAL_Log(EXYNOS_LOG_ERROR, "%s: EXYNOS_MP3_HANDLE alloc error, ret: %X", __FUNCTION__, ret);
+    pAacDec = Exynos_OSAL_Malloc(sizeof(EXYNOS_AAC_HANDLE));
+    if (pAacDec == NULL) {
+        Exynos_OSAL_Log(EXYNOS_LOG_ERROR, "%s: EXYNOS_AAC_HANDLE alloc error, ret: %X", __FUNCTION__, ret);
         ret = OMX_ErrorInsufficientResources;
         goto EXIT_ERROR_2;
     }
-    Exynos_OSAL_Memset(pMp3Dec, 0, sizeof(EXYNOS_MP3_HANDLE));
+    Exynos_OSAL_Memset(pAacDec, 0, sizeof(EXYNOS_AAC_HANDLE));
     pAudioDec = (EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle;
-    pAudioDec->hCodecHandle = (OMX_HANDLETYPE)pMp3Dec;
+    pAudioDec->hCodecHandle = (OMX_HANDLETYPE)pAacDec;
 
     /* Create and Init Seiren */
-    pMp3Dec->hSeirenMp3Handle.bSeirenLoaded = OMX_FALSE;
-    fd = ADec_Create(0, ADEC_MP3, NULL);
+    pAacDec->hSeirenAacHandle.bSeirenLoaded = OMX_FALSE;
+    fd = ADec_Create(0, ADEC_AAC, NULL);
 
     if (fd < 0) {
         Exynos_OSAL_Log(EXYNOS_LOG_ERROR, "Seiren_ADec_Create failed: %d", fd);
         ret = OMX_ErrorHardware;
         goto EXIT_ERROR_3;
     }
-    pMp3Dec->hSeirenMp3Handle.hSeirenHandle = fd; /* Seiren's fd */
-    pMp3Dec->hSeirenMp3Handle.bSeirenLoaded = OMX_TRUE;
+    pAacDec->hSeirenAacHandle.hSeirenHandle = fd; /* Seiren's fd */
+    pAacDec->hSeirenAacHandle.bSeirenLoaded = OMX_TRUE;
 
     /* Get input buffer info from Seiren */
-    Exynos_OSAL_Memset(&pMp3Dec->hSeirenMp3Handle.input_mem_pool, 0, sizeof(audio_mem_info_t));
-    ADec_GetIMemPoolInfo(fd, &pMp3Dec->hSeirenMp3Handle.input_mem_pool);
-    input_mem_pool = pMp3Dec->hSeirenMp3Handle.input_mem_pool;
+    Exynos_OSAL_Memset(&pAacDec->hSeirenAacHandle.input_mem_pool, 0, sizeof(audio_mem_info_t));
+    ADec_GetIMemPoolInfo(fd, &pAacDec->hSeirenAacHandle.input_mem_pool);
+    input_mem_pool = pAacDec->hSeirenAacHandle.input_mem_pool;
+        
+    Exynos_OSAL_Log(EXYNOS_LOG_ERROR, "eiren_Adec_GetIMemPoolInfo : %d", input_mem_pool.mem_size);
 
     if (input_mem_pool.virt_addr == NULL) {
         Exynos_OSAL_Log(EXYNOS_LOG_ERROR, "Seiren_Adec_GetIMemPoolInfo failed: %d", fd);
@@ -775,9 +802,9 @@ OSCL_EXPORT_REF OMX_ERRORTYPE Exynos_OMX_ComponentInit(OMX_HANDLETYPE hComponent
     pExynosPort->processData.multiPlaneBuffer.dataBuffer[AUDIO_DATA_PLANE] = input_mem_pool.virt_addr;
 
     /* Get output buffer info from Seiren */
-    Exynos_OSAL_Memset(&pMp3Dec->hSeirenMp3Handle.output_mem_pool, 0, sizeof(audio_mem_info_t));
-    ADec_GetOMemPoolInfo(fd, &pMp3Dec->hSeirenMp3Handle.output_mem_pool);
-    output_mem_pool = pMp3Dec->hSeirenMp3Handle.output_mem_pool;
+    Exynos_OSAL_Memset(&pAacDec->hSeirenAacHandle.output_mem_pool, 0, sizeof(audio_mem_info_t));
+    ADec_GetOMemPoolInfo(fd, &pAacDec->hSeirenAacHandle.output_mem_pool);
+    output_mem_pool = pAacDec->hSeirenAacHandle.output_mem_pool;
     if (output_mem_pool.virt_addr == NULL) {
         Exynos_OSAL_Log(EXYNOS_LOG_ERROR, "Seiren_ADec_GetOMemPoolInfo failed: %d", fd);
         ret = OMX_ErrorHardware;
@@ -803,10 +830,10 @@ OSCL_EXPORT_REF OMX_ERRORTYPE Exynos_OMX_ComponentInit(OMX_HANDLETYPE hComponent
     pExynosPort->portDefinition.nBufferSize = input_mem_pool.mem_size;
     pExynosPort->portDefinition.bEnabled = OMX_TRUE;
     Exynos_OSAL_Memset(pExynosPort->portDefinition.format.audio.cMIMEType, 0, MAX_OMX_MIMETYPE_SIZE);
-    Exynos_OSAL_Strcpy(pExynosPort->portDefinition.format.audio.cMIMEType, "audio/mpeg");
+    Exynos_OSAL_Strcpy(pExynosPort->portDefinition.format.audio.cMIMEType, "audio/aac");
     pExynosPort->portDefinition.format.audio.pNativeRender = 0;
     pExynosPort->portDefinition.format.audio.bFlagErrorConcealment = OMX_FALSE;
-    pExynosPort->portDefinition.format.audio.eEncoding = OMX_AUDIO_CodingMP3;
+    pExynosPort->portDefinition.format.audio.eEncoding = OMX_AUDIO_CodingAAC;
     pExynosPort->portWayType = WAY1_PORT;
 
     /* Output port */
@@ -822,42 +849,43 @@ OSCL_EXPORT_REF OMX_ERRORTYPE Exynos_OMX_ComponentInit(OMX_HANDLETYPE hComponent
     pExynosPort->portDefinition.format.audio.eEncoding = OMX_AUDIO_CodingPCM;
     pExynosPort->portWayType = WAY1_PORT;
 
-    /* Default values for Mp3 audio param */
-    INIT_SET_SIZE_VERSION(&pMp3Dec->mp3Param, OMX_AUDIO_PARAM_MP3TYPE);
-    pMp3Dec->mp3Param.nPortIndex      = INPUT_PORT_INDEX;
-    pMp3Dec->mp3Param.nChannels       = DEFAULT_AUDIO_CHANNELS_NUM;
-    pMp3Dec->mp3Param.nBitRate        = 0;
-    pMp3Dec->mp3Param.nSampleRate     = DEFAULT_AUDIO_SAMPLING_FREQ;
-    pMp3Dec->mp3Param.nAudioBandWidth = 0;
-    pMp3Dec->mp3Param.eChannelMode    = OMX_AUDIO_ChannelModeStereo;
-    pMp3Dec->mp3Param.eFormat         = OMX_AUDIO_MP3StreamFormatMP1Layer3;
+    /* Default values for Aac audio param */
+    INIT_SET_SIZE_VERSION(&pAacDec->aacParam, OMX_AUDIO_PARAM_AACPROFILETYPE);
+    pAacDec->aacParam.nPortIndex       = INPUT_PORT_INDEX;
+    pAacDec->aacParam.nChannels        = DEFAULT_AUDIO_CHANNELS_NUM;
+    pAacDec->aacParam.nBitRate         = 0;
+    pAacDec->aacParam.nSampleRate      = DEFAULT_AUDIO_SAMPLING_FREQ;
+    pAacDec->aacParam.nAudioBandWidth  = 0;
+    pAacDec->aacParam.eChannelMode     = OMX_AUDIO_ChannelModeStereo;
+    pAacDec->aacParam.eAACProfile      = OMX_AUDIO_AACObjectNull;
+    pAacDec->aacParam.eAACStreamFormat = OMX_AUDIO_AACStreamFormatMP2ADTS;
 
     /* Default values for PCM audio param */
-    INIT_SET_SIZE_VERSION(&pMp3Dec->pcmParam, OMX_AUDIO_PARAM_PCMMODETYPE);
-    pMp3Dec->pcmParam.nPortIndex         = OUTPUT_PORT_INDEX;
-    pMp3Dec->pcmParam.nChannels          = DEFAULT_AUDIO_CHANNELS_NUM;
-    pMp3Dec->pcmParam.eNumData           = OMX_NumericalDataSigned;
-    pMp3Dec->pcmParam.eEndian            = OMX_EndianLittle;
-    pMp3Dec->pcmParam.bInterleaved       = OMX_TRUE;
-    pMp3Dec->pcmParam.nBitPerSample      = DEFAULT_AUDIO_BIT_PER_SAMPLE;
-    pMp3Dec->pcmParam.nSamplingRate      = DEFAULT_AUDIO_SAMPLING_FREQ;
-    pMp3Dec->pcmParam.ePCMMode           = OMX_AUDIO_PCMModeLinear;
-    pMp3Dec->pcmParam.eChannelMapping[0] = OMX_AUDIO_ChannelLF;
-    pMp3Dec->pcmParam.eChannelMapping[1] = OMX_AUDIO_ChannelRF;
+    INIT_SET_SIZE_VERSION(&pAacDec->pcmParam, OMX_AUDIO_PARAM_PCMMODETYPE);
+    pAacDec->pcmParam.nPortIndex         = OUTPUT_PORT_INDEX;
+    pAacDec->pcmParam.nChannels          = DEFAULT_AUDIO_CHANNELS_NUM;
+    pAacDec->pcmParam.eNumData           = OMX_NumericalDataSigned;
+    pAacDec->pcmParam.eEndian            = OMX_EndianLittle;
+    pAacDec->pcmParam.bInterleaved       = OMX_TRUE;
+    pAacDec->pcmParam.nBitPerSample      = DEFAULT_AUDIO_BIT_PER_SAMPLE;
+    pAacDec->pcmParam.nSamplingRate      = DEFAULT_AUDIO_SAMPLING_FREQ;
+    pAacDec->pcmParam.ePCMMode           = OMX_AUDIO_PCMModeLinear;
+    pAacDec->pcmParam.eChannelMapping[0] = OMX_AUDIO_ChannelLF;
+    pAacDec->pcmParam.eChannelMapping[1] = OMX_AUDIO_ChannelRF;
 
-    pOMXComponent->GetParameter      = &Exynos_Seiren_Mp3Dec_GetParameter;
-    pOMXComponent->SetParameter      = &Exynos_Seiren_Mp3Dec_SetParameter;
-    pOMXComponent->GetConfig         = &Exynos_Seiren_Mp3Dec_GetConfig;
-    pOMXComponent->SetConfig         = &Exynos_Seiren_Mp3Dec_SetConfig;
-    pOMXComponent->GetExtensionIndex = &Exynos_Seiren_Mp3Dec_GetExtensionIndex;
-    pOMXComponent->ComponentRoleEnum = &Exynos_Seiren_Mp3Dec_ComponentRoleEnum;
+    pOMXComponent->GetParameter      = &Exynos_Seiren_AacDec_GetParameter;
+    pOMXComponent->SetParameter      = &Exynos_Seiren_AacDec_SetParameter;
+    pOMXComponent->GetConfig         = &Exynos_Seiren_AacDec_GetConfig;
+    pOMXComponent->SetConfig         = &Exynos_Seiren_AacDec_SetConfig;
+    pOMXComponent->GetExtensionIndex = &Exynos_Seiren_AacDec_GetExtensionIndex;
+    pOMXComponent->ComponentRoleEnum = &Exynos_Seiren_AacDec_ComponentRoleEnum;
     pOMXComponent->ComponentDeInit   = &Exynos_OMX_ComponentDeinit;
 
     /* ToDo: Change the function name associated with a specific codec */
-    pExynosComponent->exynos_codec_componentInit      = &Exynos_Seiren_Mp3Dec_Init;
-    pExynosComponent->exynos_codec_componentTerminate = &Exynos_Seiren_Mp3Dec_Terminate;
-    pAudioDec->exynos_codec_bufferProcess = &Exynos_Seiren_Mp3Dec_bufferProcess;
-    pAudioDec->exynos_codec_flushSeiren = &Exynos_Seiren_Mp3Dec_flushSeiren;
+    pExynosComponent->exynos_codec_componentInit      = &Exynos_Seiren_AacDec_Init;
+    pExynosComponent->exynos_codec_componentTerminate = &Exynos_Seiren_AacDec_Terminate;
+    pAudioDec->exynos_codec_bufferProcess = &Exynos_Seiren_AacDec_bufferProcess;
+    pAudioDec->exynos_codec_flushSeiren = &Exynos_Seiren_AacDec_flushSeiren;
     pAudioDec->exynos_checkInputFrame = NULL;
 
     pExynosComponent->currentState = OMX_StateLoaded;
@@ -871,9 +899,9 @@ EXIT_ERROR_6:
     pExynosPort->processData.allocSize = 0;
 EXIT_ERROR_5:
 EXIT_ERROR_4:
-    ADec_Destroy(pMp3Dec->hSeirenMp3Handle.hSeirenHandle);
+    ADec_Destroy(pAacDec->hSeirenAacHandle.hSeirenHandle);
 EXIT_ERROR_3:
-    Exynos_OSAL_Free(pMp3Dec);
+    Exynos_OSAL_Free(pAacDec);
     pAudioDec->hCodecHandle = NULL;
 EXIT_ERROR_2:
     Exynos_OSAL_Free(pExynosComponent->componentName);
@@ -891,7 +919,7 @@ OMX_ERRORTYPE Exynos_OMX_ComponentDeinit(OMX_HANDLETYPE hComponent)
     OMX_ERRORTYPE             ret = OMX_ErrorNone;
     OMX_COMPONENTTYPE        *pOMXComponent = NULL;
     EXYNOS_OMX_BASECOMPONENT *pExynosComponent = NULL;
-    EXYNOS_MP3_HANDLE        *pMp3Dec = NULL;
+    EXYNOS_AAC_HANDLE        *pAacDec = NULL;
     EXYNOS_OMX_BASEPORT      *pExynosPort = NULL;
 
     FunctionIn();
@@ -906,12 +934,12 @@ OMX_ERRORTYPE Exynos_OMX_ComponentDeinit(OMX_HANDLETYPE hComponent)
     Exynos_OSAL_Free(pExynosComponent->componentName);
     pExynosComponent->componentName = NULL;
 
-    pMp3Dec = (EXYNOS_MP3_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
-    if (pMp3Dec != NULL) {
-        if (pMp3Dec->hSeirenMp3Handle.bSeirenLoaded == OMX_TRUE) {
-            ADec_Destroy(pMp3Dec->hSeirenMp3Handle.hSeirenHandle);
+    pAacDec = (EXYNOS_AAC_HANDLE *)((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle;
+    if (pAacDec != NULL) {
+        if (pAacDec->hSeirenAacHandle.bSeirenLoaded == OMX_TRUE) {
+            ADec_Destroy(pAacDec->hSeirenAacHandle.hSeirenHandle);
         }
-        Exynos_OSAL_Free(pMp3Dec);
+        Exynos_OSAL_Free(pAacDec);
         ((EXYNOS_OMX_AUDIODEC_COMPONENT *)pExynosComponent->hComponentHandle)->hCodecHandle = NULL;
     }
 
